@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial Maestro · Webs Premium Animadas con IA y Control de Scroll</title>
+<style>
+:root{
+  --bg:#0a0e1a; --card:#0f172a; --border:#1e3a5f;
+  --acc:#00d4ff; --green:#22c55e; --amber:#f59e0b; --red:#ef4444; --purple:#a855f7;
+  --txt:#e2e8f0; --mut:#94a3b8; --dim:#64748b; --r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  line-height:1.6;overflow-x:hidden;
+  background-image:radial-gradient(circle at 12% 0%,rgba(0,212,255,.06),transparent 40%),
+                   radial-gradient(circle at 88% 100%,rgba(168,85,247,.06),transparent 42%);
+}
+::selection{background:rgba(0,212,255,.3)}
+
+/* ===== barra progreso ===== */
+#pbar{position:fixed;top:0;left:0;height:4px;width:0%;z-index:1200;
+  background:linear-gradient(90deg,var(--acc),var(--purple));box-shadow:0 0 12px rgba(0,212,255,.7)}
+
+/* ===== navbar ===== */
+.topbar{position:fixed;top:4px;left:0;right:0;z-index:1100;display:flex;align-items:center;gap:10px;
+  background:rgba(10,14,26,.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);
+  height:58px;padding:0 12px}
+.brand{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.bdot{width:10px;height:10px;border-radius:50%;background:var(--acc);box-shadow:0 0 10px var(--acc);animation:pd 2s infinite}
+@keyframes pd{50%{opacity:.35}}
+.btxt{font-weight:700;font-size:.9rem;letter-spacing:1px;white-space:nowrap}
+.btxt b{color:var(--acc)}
+.nav{display:flex;gap:6px;overflow-x:auto;flex:1;padding:6px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.nav::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;background:transparent;border:1px solid transparent;color:var(--mut);
+  font-family:inherit;font-size:.84rem;font-weight:600;letter-spacing:.4px;padding:9px 13px;
+  border-radius:8px;cursor:pointer;position:relative;white-space:nowrap;transition:.25s}
+.tab:hover{color:var(--txt);background:rgba(0,212,255,.08)}
+.tab.active{color:var(--acc);background:rgba(0,212,255,.1);border-color:rgba(0,212,255,.35)}
+.tab.active::after{content:'';position:absolute;left:12px;right:12px;bottom:-7px;height:2px;
+  background:var(--acc);box-shadow:0 0 8px var(--acc)}
+.tab.cr{color:#d8b4fe;border-color:rgba(168,85,247,.4)}
+.tab.cr.active{color:var(--purple);background:rgba(168,85,247,.14);border-color:var(--purple)}
+.tab.cr.active::after{background:var(--purple);box-shadow:0 0 8px var(--purple)}
+
+/* ===== SPA ===== */
+main{max-width:1120px;margin:0 auto;padding:84px 16px 30px}
+.view{display:none}
+.view.on{display:block;animation:fi .4s ease}
+@keyframes fi{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ===== home ===== */
+.badge{display:inline-block;border:1px solid rgba(0,212,255,.4);color:var(--acc);
+  background:rgba(0,212,255,.07);font-size:.75rem;font-weight:700;letter-spacing:2px;
+  padding:7px 16px;border-radius:999px;text-transform:uppercase;margin-bottom:14px}
+.cover{width:100%;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--card);
+  box-shadow:0 20px 60px rgba(0,0,0,.55),0 0 45px rgba(0,212,255,.08)}
+.cover svg{display:block;width:100%;height:auto}
+.hero{margin-top:28px}
+h1{font-size:clamp(1.7rem,4.6vw,3rem);line-height:1.15;font-weight:800;letter-spacing:-.5px}
+.grad{background:linear-gradient(90deg,var(--acc),var(--purple));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{margin-top:10px;font-size:clamp(.98rem,2.2vw,1.15rem);color:#7dd3fc;font-weight:600}
+.desc{margin-top:12px;color:var(--mut);max-width:840px}
+.quote{margin:26px 0;padding:18px 22px;border-left:4px solid var(--acc);
+  background:linear-gradient(90deg,rgba(0,212,255,.09),transparent 70%);
+  border-radius:0 var(--r) var(--r) 0;font-size:clamp(.98rem,2.3vw,1.2rem);font-style:italic;color:#dbeafe}
+.mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:22px 0}
+.met{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden;transition:.25s}
+.met:hover{transform:translateY(-4px);border-color:var(--acc)}
+.met::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--mc,var(--acc))}
+.met .big{font-size:1.6rem;font-weight:800;color:var(--mc,var(--acc));line-height:1.15}
+.met .lbl{font-size:.8rem;color:var(--mut);margin-top:5px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.84rem;font-weight:600;
+  border:1px solid var(--border);background:var(--card);border-radius:999px;padding:7px 14px;color:#cbd5e1}
+.chip.a{border-color:rgba(0,212,255,.45);color:var(--acc)}
+.chip a{color:var(--acc);text-decoration:none;word-break:break-all}
+
+/* ===== secciones ===== */
+.sh{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.shi{width:52px;height:52px;flex:0 0 auto;display:grid;place-items:center;font-size:1.45rem;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:inset 0 0 20px rgba(0,212,255,.08)}
+.sk{display:block;font-size:.7rem;letter-spacing:3px;color:var(--acc);font-weight:700;text-transform:uppercase}
+.sh h2{font-size:clamp(1.3rem,3.4vw,1.85rem);font-weight:800;line-height:1.2}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.card h3{font-size:1.08rem;margin-bottom:10px;color:#e0f2fe}
+.card p{color:#cbd5e1;margin-bottom:10px}
+.card p:last-child{margin-bottom:0}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:14px}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.kcard{border-top:3px solid var(--kc,var(--acc))}
+.kcard b{display:block;color:#e0f2fe;margin-bottom:6px}
+.kcard p{font-size:.93rem;color:var(--mut);margin:0}
+
+/* tablas */
+.twrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin:12px 0;background:var(--card)}
+table{width:100%;border-collapse:collapse;min-width:540px;font-size:.9rem}
+th{background:#12213c;color:var(--acc);text-align:left;padding:12px 14px;border-bottom:2px solid var(--border);
+  font-size:.78rem;letter-spacing:1px;text-transform:uppercase}
+td{padding:12px 14px;border-bottom:1px solid rgba(30,58,95,.5);color:#cbd5e1;vertical-align:top}
+tr:last-child td{border-bottom:none}
+td.b{color:#fca5a5}td.g{color:#86efac}
+
+/* callouts */
+.co{border-radius:12px;padding:15px 17px;margin:14px 0;border:1px solid;border-left-width:5px}
+.ct{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:2px;margin-bottom:6px}
+.co p{margin:0;color:var(--txt)}
+.co.i{background:rgba(0,212,255,.06);border-color:rgba(0,212,255,.35);border-left-color:var(--acc)}
+.co.i .ct{color:var(--acc)}
+.co.e{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.35);border-left-color:var(--green)}
+.co.e .ct{color:var(--green)}
+.co.a{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.35);border-left-color:var(--amber)}
+.co.a .ct{color:var(--amber)}
+.co.r{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.35);border-left-color:var(--red)}
+.co.r .ct{color:var(--red)}
+
+/* prompts */
+.pr{background:#0a0e1a;border:1px solid var(--border);border-left:4px solid var(--acc);border-radius:8px;
+  padding:15px;margin:12px 0;overflow-x:auto;font-family:Consolas,'Courier New',monospace;
+  font-size:.86rem;line-height:1.55;color:#9ee6ff;white-space:pre-wrap;word-break:break-word}
+.pr::before{content:'❝ PROMPT LITERAL';display:block;font-family:'Segoe UI',sans-serif;
+  font-size:.66rem;letter-spacing:2px;color:var(--dim);margin-bottom:8px;font-weight:700}
+
+/* pasos */
+.step{display:flex;gap:14px;margin-bottom:18px}
+.sn{flex:0 0 auto;width:42px;height:42px;display:grid;place-items:center;border-radius:10px;
+  background:linear-gradient(135deg,var(--acc),var(--purple));color:#051018;font-weight:800;font-size:1.05rem;
+  box-shadow:0 4px 16px rgba(0,212,255,.3)}
+.sb{flex:1;min-width:0}
+.sb h4{font-size:1rem;margin-bottom:5px;color:#e0f2fe}
+.sb p{color:var(--mut);font-size:.93rem;margin-bottom:6px}
+
+/* checklist */
+.ck{display:flex;align-items:flex-start;gap:12px;padding:13px 14px;margin-bottom:10px;
+  background:#0a0e1a;border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:.25s;user-select:none}
+.ck:hover{border-color:var(--acc)}
+.ck input{position:absolute;opacity:0;pointer-events:none}
+.cb{flex:0 0 auto;width:24px;height:24px;border:2px solid var(--border);border-radius:6px;
+  display:grid;place-items:center;font-size:.85rem;color:transparent;transition:.25s;margin-top:1px}
+.ck input:checked~.cb{background:var(--green);border-color:var(--green);color:#04140a}
+.ck input:checked~.cx{color:var(--green)}
+.cx{color:#cbd5e1;font-size:.93rem}
+
+/* acordeón */
+.acc{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;background:#0a0e1a;overflow:hidden}
+.acch{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;background:transparent;
+  border:none;color:#e0f2fe;font-family:inherit;font-size:.96rem;font-weight:700;padding:15px 17px;cursor:pointer;text-align:left}
+.acch:hover{color:var(--acc)}
+.arw{color:var(--acc);transition:transform .3s;flex:0 0 auto}
+.acc.open .arw{transform:rotate(180deg)}
+.accb{max-height:0;overflow:hidden;transition:max-height .35s ease}
+.accb>div{padding:0 17px 15px;color:var(--mut);font-size:.93rem}
+
+/* demo scrub */
+.demo{border-color:rgba(0,212,255,.4)}
+input[type=range]{width:100%;appearance:none;-webkit-appearance:none;height:10px;border-radius:6px;
+  background:#1e3a5f;outline:none;margin:14px 0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:var(--acc);border:3px solid #051018;box-shadow:0 0 14px rgba(0,212,255,.8);cursor:grab}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--acc);
+  border:3px solid #051018;box-shadow:0 0 14px rgba(0,212,255,.8);cursor:grab}
+.drow{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-weight:800}
+.drow .f{color:var(--acc);font-family:Consolas,monospace;letter-spacing:1px}
+.drow .p{color:var(--amber);font-family:Consolas,monospace}
+.dbar{height:8px;border-radius:4px;background:#13203a;overflow:hidden;margin:6px 0 12px}
+.dbar>div{height:100%;width:0%;background:linear-gradient(90deg,var(--acc),var(--purple));transition:width .1s}
+.pv{height:160px;border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  background:linear-gradient(180deg,#12203c,#0b1226);display:grid;place-items:center}
+.mb{width:42px;height:92px;border-radius:14px 14px 12px 12px;position:relative;transition:transform .12s linear;
+  background:linear-gradient(180deg,#ec4899,#a855f7);box-shadow:0 0 24px rgba(236,72,153,.55)}
+.mb::before{content:'';position:absolute;top:-14px;left:50%;transform:translateX(-50%);width:16px;height:14px;background:#e2e8f0;border-radius:3px}
+.mb::after{content:'';position:absolute;top:32%;left:15%;right:15%;height:30%;background:rgba(255,255,255,.9);border-radius:4px}
+.dnote{font-size:.8rem;color:var(--dim);margin-top:10px;font-style:italic}
+
+/* errores / glosario */
+.err{display:flex;gap:13px;align-items:flex-start;padding:13px;border:1px solid rgba(239,68,68,.3);
+  border-radius:10px;background:rgba(239,68,68,.05);margin-bottom:10px}
+.en{flex:0 0 auto;width:30px;height:30px;border-radius:8px;background:rgba(239,68,68,.18);
+  color:var(--red);display:grid;place-items:center;font-weight:800;font-size:.9rem}
+.err b{color:#fecaca;display:block;margin-bottom:2px}
+.err p{color:var(--mut);font-size:.9rem;margin:0}
+.gl{border-top:3px solid var(--purple)}
+.gl b{color:#d8b4fe;display:block;margin-bottom:5px;letter-spacing:.5px}
+.gl span{color:var(--mut);font-size:.9rem}
+
+/* créditos */
+.cthero{text-align:center;margin-bottom:22px}
+.cthero h2{font-size:clamp(1.3rem,4vw,2rem);font-weight:800}
+.cthero .sub2{color:var(--mut);margin-top:8px}
+.auth{display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+  background:linear-gradient(135deg,rgba(168,85,247,.1),rgba(0,212,255,.06));border:1px solid rgba(168,85,247,.4)}
+.av{width:62px;height:62px;border-radius:16px;display:grid;place-items:center;font-size:1.6rem;font-weight:800;
+  background:linear-gradient(135deg,var(--purple),var(--acc));color:#051018;box-shadow:0 6px 20px rgba(168,85,247,.4)}
+.an{font-size:1.25rem;font-weight:800;color:#f3e8ff}
+.ar{color:#c4b5fd;font-size:.88rem}
+.fiat{text-align:center;font-style:italic;font-size:clamp(1rem,2.6vw,1.3rem);color:#d8b4fe;margin:26px 0 6px;letter-spacing:1px}
+.fiat::before,.fiat::after{content:'❦';color:var(--purple);margin:0 12px;opacity:.7}
+
+/* footer / toTop */
+footer{border-top:1px solid var(--border);margin-top:28px;padding:28px 16px 90px;text-align:center;background:rgba(15,23,42,.5)}
+footer div{color:var(--mut);font-size:.9rem;margin-bottom:6px}
+footer .ff{color:#c4b5fd;font-style:italic;margin-top:12px}
+#toTop{position:fixed;right:16px;bottom:16px;z-index:1150;width:50px;height:50px;border-radius:50%;
+  border:1px solid rgba(0,212,255,.5);background:rgba(15,23,42,.92);color:var(--acc);font-size:1.25rem;
+  cursor:pointer;opacity:0;pointer-events:none;transform:translateY(16px);transition:.3s;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+#toTop.show{opacity:1;pointer-events:auto;transform:none}
+#toTop:hover{background:var(--acc);color:#051018}
+
+@media (max-width:640px){
+  main{padding:78px 12px 24px}
+  .btxt{display:none}
+  .card{padding:15px}
+  .mets{grid-template-columns:repeat(2,1fr);gap:9px}
+  .met .big{font-size:1.25rem}
+  .tab{font-size:.78rem;padding:9px 10px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<div id="pbar" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand"><span class="bdot"></span><span class="btxt">WEB<b>PREMIUM</b>·LAB</span></div>
+  <nav class="nav" id="nav" aria-label="Navegación del tutorial">
+    <button class="tab active" data-go="v-home">🏠 INICIO</button>
+    <button class="tab" data-go="v-intro">01 · INTRODUCCIÓN</button>
+    <button class="tab" data-go="v-f1">02 · INSPIRACIÓN</button>
+    <button class="tab" data-go="v-f2">03 · ACTIVOS IA</button>
+    <button class="tab" data-go="v-f3">04 · MAQUETACIÓN</button>
+    <button class="tab" data-go="v-f4">05 · NARRATIVA</button>
+    <button class="tab" data-go="v-f5">06 · SCROLL</button>
+    <button class="tab" data-go="v-f6">07 · DESPLIEGUE</button>
+    <button class="tab" data-go="v-fin">08 · CONCLUSIÓN</button>
+    <button class="tab cr" data-go="v-cred">★ CRÉDITOS</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ================= HOME ================= -->
+<section id="v-home" class="view on">
+  <div style="text-align:center"><span class="badge">📘 Tutorial Técnico Interactivo · Dark UI</span></div>
+
+  <div class="cover" aria-label="Portada animada del tutorial">
+  <!-- ======== SVG ANIMADO 16:9 (portada) ======== -->
+  <svg id="coverSvg" viewBox="0 0 1600 900" role="img" aria-label="Pipeline animado: prompt, generación IA, video, secuencia de fotogramas y hero controlado por scroll" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .fl{animation:fl 6s ease-in-out infinite alternate}
+      .fl2{animation:fl 7s ease-in-out 1s infinite alternate}
+      @keyframes fl{to{transform:translateY(-10px)}}
+      @media (prefers-reduced-motion:reduce){.fl,.fl2{animation:none}}
+      text{font-family:'Segoe UI',system-ui,sans-serif}
+    </style>
+    <defs>
+      <linearGradient id="bgG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0e1630"/><stop offset="1" stop-color="#0a0e1a"/>
+      </linearGradient>
+      <linearGradient id="accG" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#00d4ff"/><stop offset="1" stop-color="#a855f7"/>
+      </linearGradient>
+      <linearGradient id="magG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#ec4899"/><stop offset="1" stop-color="#a855f7"/>
+      </linearGradient>
+      <linearGradient id="heroG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#16233f"/><stop offset="1" stop-color="#0a0e1a"/>
+      </linearGradient>
+      <linearGradient id="hlG" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#00d4ff" stop-opacity="0"/>
+        <stop offset=".5" stop-color="#00d4ff" stop-opacity=".45"/>
+        <stop offset="1" stop-color="#00d4ff" stop-opacity="0"/>
+      </linearGradient>
+      <radialGradient id="rgA" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#00d4ff" stop-opacity=".16"/>
+        <stop offset="1" stop-color="#00d4ff" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="rgP" cx=".5" cy=".5" r=".5">
+        <stop offset="0" stop-color="#a855f7" stop-opacity=".15"/>
+        <stop offset="1" stop-color="#a855f7" stop-opacity="0"/>
+      </radialGradient>
+      <pattern id="gp" width="40" height="40" patternUnits="userSpaceOnUse">
+        <path d="M40 0H0V40" fill="none" stroke="#1e3a5f" stroke-opacity=".22"/>
+      </pattern>
+      <clipPath id="clipHero"><rect x="1012" y="252" width="516" height="546" rx="6"/></clipPath>
+    </defs>
+
+    <!-- fondo -->
+    <rect width="1600" height="900" fill="url(#bgG)"/>
+    <rect width="1600" height="900" fill="url(#gp)"/>
+    <circle cx="300" cy="140" r="420" fill="url(#rgA)"/>
+    <circle cx="1350" cy="770" r="460" fill="url(#rgP)"/>
+    <!-- esquinas -->
+    <path d="M24 60V24h36M1540 24h36v36M1576 840v36h-36M60 876H24v-36" fill="none" stroke="#00d4ff" stroke-opacity=".5" stroke-width="2"/>
+
+    <!-- título -->
+    <text x="70" y="90" font-size="46" font-weight="800" fill="#e2e8f0" letter-spacing="2">SCROLL-DRIVEN HERO</text>
+    <text x="70" y="126" font-size="18" fill="#00d4ff" letter-spacing="4">PROMPT → ASSET → VIDEO → 80 FRAMES → CANVAS</text>
+    <rect x="1230" y="58" width="300" height="44" rx="22" fill="none" stroke="#1e3a5f"/>
+    <text x="1380" y="86" font-size="16" fill="#94a3b8" text-anchor="middle" letter-spacing="2">VEO 3.1 FAST · CANVAS · 16:9</text>
+
+    <!-- conectores -->
+    <g stroke="#1e3a5f" stroke-width="2" stroke-dasharray="7 7" fill="none">
+      <path d="M405 315H510"/>
+      <path d="M610 315H695"/>
+      <path d="M825 405C825 480 520 480 520 570"/>
+      <path d="M955 650C995 650 985 590 1005 585"/>
+    </g>
+
+    <!-- partículas -->
+    <g fill="#00d4ff">
+      <g><circle r="5"/><circle r="10" opacity=".25"/><animateMotion dur="1.8s" repeatCount="indefinite" path="M405,315 L510,315"/></g>
+      <g><circle r="5"/><circle r="10" opacity=".25"/><animateMotion dur="1.8s" begin=".6s" repeatCount="indefinite" path="M610,315 L695,315"/></g>
+      <g><circle r="5" fill="#a855f7"/><circle r="10" fill="#a855f7" opacity=".25"/><animateMotion dur="2.4s" begin=".3s" repeatCount="indefinite" path="M825,405 C825,480 520,480 520,570"/></g>
+      <g><circle r="5"/><circle r="10" opacity=".25"/><animateMotion dur="1.6s" begin="1s" repeatCount="indefinite" path="M955,650 C995,650 985,590 1005,585"/></g>
+    </g>
+
+    <!-- 01 · PROMPT -->
+    <g class="fl">
+      <rect x="70" y="210" width="330" height="210" rx="12" fill="#0f172a" stroke="#1e3a5f" stroke-width="1.5"/>
+      <text x="94" y="246" font-size="13" fill="#00d4ff" letter-spacing="3">01 · PROMPT ENGINEERING</text>
+      <rect x="94" y="268" width="230" height="12" rx="6" fill="#13203a"/>
+      <rect x="94" y="268" width="230" height="12" rx="6" fill="#38bdf8" opacity=".85">
+        <animate attributeName="width" values="0;0;230;230" keyTimes="0;0.05;0.2;1" dur="10s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="94" y="298" width="190" height="12" rx="6" fill="#13203a"/>
+      <rect x="94" y="298" width="190" height="12" rx="6" fill="#38bdf8" opacity=".7">
+        <animate attributeName="width" values="0;0;190;190" keyTimes="0;0.22;0.42;1" dur="10s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="94" y="328" width="150" height="12" rx="6" fill="#13203a"/>
+      <rect x="94" y="328" width="150" height="12" rx="6" fill="#38bdf8" opacity=".55">
+        <animate attributeName="width" values="0;0;150;150" keyTimes="0;0.44;0.62;1" dur="10s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="250" y="326" width="3" height="16" fill="#00d4ff">
+        <animate attributeName="opacity" values="1;0" dur="0.9s" calcMode="discrete" repeatCount="indefinite"/>
+      </rect>
+      <rect x="94" y="368" width="180" height="28" rx="14" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <text x="184" y="387" font-size="13" fill="#94a3b8" text-anchor="middle">ChatGPT + DALL·E</text>
+    </g>
+
+    <!-- nodo IA -->
+    <g>
+      <circle cx="560" cy="315" r="46" fill="none" stroke="#a855f7" stroke-width="2">
+        <animate attributeName="r" values="46;88" dur="2.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".6;0" dur="2.4s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="560" cy="315" r="46" fill="none" stroke="#a855f7" stroke-width="2">
+        <animate attributeName="r" values="46;88" dur="2.4s" begin="1.2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values=".6;0" dur="2.4s" begin="1.2s" repeatCount="indefinite"/>
+      </circle>
+      <circle cx="560" cy="315" r="46" fill="#0f172a" stroke="#a855f7" stroke-width="2"/>
+      <g>
+        <path d="M560 288l7 20 20 7-20 7-7 20-7-20-20-7 20-7z" fill="#a855f7"/>
+        <animateTransform attributeName="transform" type="rotate" from="0 560 315" to="360 560 315" dur="8s" repeatCount="indefinite"/>
+      </g>
+      <text x="560" y="397" font-size="14" fill="#a855f7" text-anchor="middle" letter-spacing="2">IA GENERATIVA</text>
+      <text x="560" y="417" font-size="12" fill="#94a3b8" text-anchor="middle">DALL·E · VEO 3.1</text>
+    </g>
+
+    <!-- 02 · VIDEO -->
+    <g class="fl2">
+      <rect x="700" y="230" width="250" height="170" rx="12" fill="#0f172a" stroke="#1e3a5f" stroke-width="1.5"/>
+      <text x="716" y="260" font-size="12" fill="#f59e0b" letter-spacing="2">02 · VIDEO CINEMATOGRÁFICO</text>
+      <polygon points="800,290 800,350 850,320" fill="url(#accG)" opacity=".9"/>
+      <rect x="700" y="230" width="40" height="170" fill="url(#hlG)" opacity=".5">
+        <animate attributeName="x" values="700;910;700" dur="3.2s" repeatCount="indefinite"/>
+      </rect>
+      <text x="825" y="387" font-size="13" fill="#94a3b8" text-anchor="middle">A → B · COHERENCIA GARANTIZADA</text>
+    </g>
+
+    <!-- 03 · SECUENCIA DE FRAMES -->
+    <text x="70" y="560" font-size="13" fill="#00d4ff" letter-spacing="3">03 · SECUENCIA DE FOTOGRAMAS · ≈80 FRAMES OPTIMIZADOS</text>
+    <rect x="70" y="575" width="880" height="135" rx="12" fill="#0d1526" stroke="#1e3a5f" stroke-width="1.5"/>
+    <g>
+      <rect x="90" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="174" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="258" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="342" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="426" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="510" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="594" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="678" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="762" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+      <rect x="846" y="595" width="74" height="95" rx="6" fill="#0a0e1a" stroke="#1e3a5f"/>
+    </g>
+    <rect x="90" y="595" width="74" height="95" rx="6" fill="url(#hlG)" opacity=".9">
+      <animate attributeName="x" values="90;846;846" keyTimes="0;0.9;1" dur="10s" repeatCount="indefinite"/>
+    </rect>
+    <g>
+      <line x1="127" y1="585" x2="127" y2="700" stroke="#f59e0b" stroke-width="3"/>
+      <polygon points="119,583 135,583 127,594" fill="#f59e0b"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;756 0;756 0" keyTimes="0;0.9;1" dur="10s" repeatCount="indefinite"/>
+    </g>
+    <text x="90" y="730" font-size="11" fill="#64748b">F0</text>
+    <text x="930" y="730" font-size="11" fill="#64748b" text-anchor="end">F80</text>
+
+    <!-- 04 · HERO + SCROLL -->
+    <text x="1010" y="192" font-size="13" fill="#00d4ff" letter-spacing="3">04 · HERO · CANVAS CONTROLADO POR SCROLL</text>
+    <rect x="1010" y="210" width="520" height="600" rx="14" fill="#0f172a" stroke="#1e3a5f" stroke-width="1.5"/>
+    <circle cx="1036" cy="230" r="6" fill="#ef4444"/>
+    <circle cx="1058" cy="230" r="6" fill="#f59e0b"/>
+    <circle cx="1080" cy="230" r="6" fill="#22c55e"/>
+    <rect x="1110" y="219" width="250" height="22" rx="11" fill="#0a0e1a" stroke="#1e3a5f"/>
+    <text x="1235" y="235" font-size="12" fill="#64748b" text-anchor="middle">blendy-juice.web</text>
+    <line x1="1012" y1="250" x2="1528" y2="250" stroke="#1e3a5f"/>
+
+    <g clip-path="url(#clipHero)">
+      <rect x="1012" y="252" width="516" height="546" fill="url(#heroG)"/>
+      <circle cx="1270" cy="700" r="220" fill="url(#rgP)"/>
+
+      <!-- zoom de cámara (botella) -->
+      <g transform="translate(1270,560)">
+        <g>
+          <animateTransform attributeName="transform" type="scale" values="1;1;2.3;2.3" keyTimes="0;0.08;0.88;1" dur="10s" repeatCount="indefinite"/>
+          <g transform="translate(-1270,-560)">
+            <ellipse cx="1270" cy="672" rx="80" ry="14" fill="#000" opacity=".35"/>
+            <rect x="1253" y="424" width="34" height="18" rx="6" fill="#e2e8f0"/>
+            <rect x="1257" y="440" width="26" height="34" rx="6" fill="url(#magG)"/>
+            <rect x="1225" y="470" width="90" height="185" rx="26" fill="url(#magG)" opacity=".95"/>
+            <rect x="1237" y="530" width="66" height="52" rx="8" fill="#fdf2f8" opacity=".92"/>
+            <text x="1270" y="560" font-size="11" font-weight="700" fill="#a21caf" text-anchor="middle">BLENDY</text>
+            <ellipse cx="1245" cy="510" rx="8" ry="26" fill="#fff" opacity=".35"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- textos hero que se desvanecen -->
+      <g>
+        <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.35;0.55;1" dur="10s" repeatCount="indefinite"/>
+        <rect x="1040" y="300" width="200" height="16" rx="8" fill="#e2e8f0"/>
+        <rect x="1040" y="330" width="170" height="8" rx="4" fill="#64748b"/>
+        <rect x="1040" y="346" width="140" height="8" rx="4" fill="#64748b"/>
+        <rect x="1040" y="372" width="120" height="30" rx="15" fill="url(#accG)"/>
+        <text x="1100" y="392" font-size="12" font-weight="700" fill="#04141f" text-anchor="middle">EXPLORAR</text>
+      </g>
+      <rect x="1380" y="280" width="120" height="26" rx="13" fill="rgba(0,212,255,.12)" stroke="#00d4ff"/>
+      <text x="1440" y="298" font-size="12" fill="#00d4ff" text-anchor="middle" letter-spacing="2">PREMIUM</text>
+
+      <!-- scrollbar -->
+      <rect x="1506" y="270" width="8" height="460" rx="4" fill="#1e3a5f"/>
+      <rect x="1506" y="270" width="8" height="96" rx="4" fill="#00d4ff">
+        <animate attributeName="y" values="270;634;634" keyTimes="0;0.9;1" dur="10s" repeatCount="indefinite"/>
+      </rect>
+      <text x="1040" y="772" font-size="12" fill="#64748b">SCROLL → FRAME EXACTO</text>
+      <rect x="1012" y="786" width="516" height="6" fill="#13203a"/>
+      <rect x="1012" y="786" width="516" height="6" fill="url(#accG)">
+        <animate attributeName="width" values="0;516;516" keyTimes="0;0.9;1" dur="10s" repeatCount="indefinite"/>
+      </rect>
+    </g>
+
+    <!-- ratón scroll -->
+    <g transform="translate(1190,826)">
+      <rect x="0" y="0" width="40" height="62" rx="20" fill="#0f172a" stroke="#00d4ff"/>
+      <rect x="18" y="12" width="4" height="12" rx="2" fill="#00d4ff">
+        <animate attributeName="y" values="12;30;12" dur="1.6s" repeatCount="indefinite"/>
+      </rect>
+      <text x="58" y="36" font-size="13" fill="#94a3b8" letter-spacing="3">SCROLL</text>
+    </g>
+
+    <text x="70" y="830" font-size="15" fill="#475569" letter-spacing="2">EL USUARIO GOBIERNA LA LÍNEA DE TIEMPO · SIN MP4 · SIN LATENCIA</text>
+  </svg>
+  <!-- ======== FIN SVG ======== -->
+  </div>
+
+  <div class="hero">
+    <h1>Webs Premium Animadas con <span class="grad">IA</span> y Control de Scroll</h1>
+    <p class="sub">Tutorial Maestro: de un presupuesto de $500 a un resultado de $5.000 — flujo completo con ChatGPT, DALL·E, Google Flow (Veo 3.1), Antigravity, Dynamo Sites y Canvas.</p>
+    <p class="desc">Como estrategas digitales, debemos entender que el diseño web ha dejado de ser una cuestión de "picar código" para convertirse en un ejercicio de arbitraje creativo. La Inteligencia Artificial nos permite cerrar la brecha entre un presupuesto de 500 dólares y un resultado de 5.000: no se trata solo de velocidad, se trata de elevar el valor percibido para maximizar la conversión y el posicionamiento de marcas de lujo.</p>
+    <blockquote class="quote">"Si no puedes explicarlo de forma sencilla, es que no lo entiendes lo suficientemente bien."</blockquote>
+    <div class="mets">
+      <div class="met" style="--mc:#00d4ff"><div class="big">06</div><div class="lbl">Fases del flujo de trabajo profesional</div></div>
+      <div class="met" style="--mc:#f59e0b"><div class="big">≈80</div><div class="lbl">Fotogramas optimizados en el Canvas</div></div>
+      <div class="met" style="--mc:#22c55e"><div class="big">$500 → $5K</div><div class="lbl">Brecha de valor percibido cerrada con IA</div></div>
+      <div class="met" style="--mc:#a855f7"><div class="big">100%</div><div class="lbl">Control de la escena en manos del usuario</div></div>
+    </div>
+    <div class="chips">
+      <span class="chip">📅 Fecha: 29/08/2026</span>
+      <span class="chip">⏰ Hora: 07:57:21</span>
+      <span class="chip a">👨‍💻 Créditos: Rubén Sbarsky</span>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 01 INTRODUCCIÓN ================= -->
+<section id="v-intro" class="view">
+  <div class="sh"><span class="shi">🧭</span><div><span class="sk">Capítulo 1</span><h2>Introducción al Nuevo Estándar del Diseño Web</h2></div></div>
+
+  <div class="card">
+    <p class="lead">Como estrategas digitales, debemos entender que el diseño web ha dejado de ser una cuestión de "picar código" para convertirse en un ejercicio de <b style="color:#7dd3fc">arbitraje creativo</b>. Hoy, la Inteligencia Artificial nos permite cerrar la brecha entre un presupuesto de <b style="color:#22c55e">500 dólares</b> y un resultado de <b style="color:#22c55e">5.000</b>. No se trata solo de velocidad; se trata de elevar el valor percibido para maximizar la conversión y el posicionamiento de marcas de lujo.</p>
+  </div>
+
+  <div class="card">
+    <h3>🎬 Referencia Audiovisual</h3>
+    <p><b>Nombre del video:</b> Crea Webs Animadas de Miles de Dólares en Minutos (Gemini + Antigravity)</p>
+    <div class="chips"><span class="chip a">🔗 <a href="https://youtube.com/watch?v=BdFKIWHC6a8&is=PYV4P8gefaQ4V8Da" target="_blank" rel="noopener">youtube.com/watch?v=BdFKIWHC6a8</a></span></div>
+  </div>
+
+  <div class="card">
+    <h3>📖 Definiciones Fundamentales</h3>
+    <div class="g2">
+      <div class="card kcard" style="--kc:#00d4ff;margin:0"><b>Web Premium Animada</b><p>Un sitio donde la estética editorial y la fluidez cinematográfica dictan la experiencia del usuario. No es una página informativa; es una pieza de branding de alta fidelidad.</p></div>
+      <div class="card kcard" style="--kc:#a855f7;margin:0"><b>Control de Scroll (Scroll-driven Animation)</b><p>Técnica donde el usuario "gobierna" la línea de tiempo. La animación no es un video que se reproduce solo, sino una secuencia que avanza o retrocede en respuesta directa al desplazamiento del ratón o el dedo.</p></div>
+    </div>
+  </div>
+
+  <div class="co i"><span class="ct">ℹ️ INFO · JUSTIFICACIÓN DEL APRENDIZAJE</span><p>Dominar este flujo de trabajo permite al profesional ofrecer experiencias que se sienten como una "historia" interactiva. En un mercado saturado de plantillas genéricas, esta capacidad de generar impacto visual inmediato es la ventaja competitiva más crítica del año.</p></div>
+
+  <div class="card">
+    <h3>📊 Casos de Uso Real: Diseño Tradicional vs. Diseño de Alto Impacto</h3>
+    <div class="twrap">
+      <table>
+        <thead><tr><th>Característica</th><th>Diseño Tradicional</th><th>Diseño de Alto Impacto (IA + Scroll)</th></tr></thead>
+        <tbody>
+          <tr><td><b>Enfoque</b></td><td>Funcional y estático.</td><td class="g">Narrativo y experiencial.</td></tr>
+          <tr><td><b>Casos de Uso</b></td><td>Negocios locales, blogs.</td><td class="g">Lanzamientos, marcas de lujo, campañas.</td></tr>
+          <tr><td><b>Interactividad</b></td><td>Pasiva (leer y click).</td><td class="g">Activa (control total de la escena).</td></tr>
+          <tr><td><b>Valor Percibido</b></td><td>Comoditizado.</td><td class="g">Premium / High-Ticket.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <blockquote class="quote">"La clave del éxito no reside en la complejidad del código, sino en la dirección creativa. Todo gran proyecto comienza con una base visual sólida."</blockquote>
+</section>
+
+<!-- ================= 02 FASE 1 ================= -->
+<section id="v-f1" class="view">
+  <div class="sh"><span class="shi">🎨</span><div><span class="sk">Capítulo 2 · Fase 1</span><h2>Inspiración y Curaduría Visual (El Cimiento Creativo)</h2></div></div>
+
+  <div class="card">
+    <p>Empezar desde una hoja en blanco es una <b style="color:#fca5a5">ineficiencia estratégica</b>. Un flujo de trabajo profesional parte de la curaduría de referencias para establecer una dirección clara de iluminación, composición y "feeling".</p>
+  </div>
+
+  <div class="card">
+    <h3>📌 Metodología de Búsqueda</h3>
+    <p><b style="color:#7dd3fc">Pinterest</b> es nuestra herramienta de inteligencia visual. El proceso consiste en:</p>
+    <div class="step"><div class="sn">1</div><div class="sb"><h4>Imagen base</h4><p>Encontrar una imagen base que capture la esencia deseada.</p></div></div>
+    <div class="step"><div class="sn">2</div><div class="sb"><h4>Refinamiento</h4><p>Navegar por las sugerencias relacionadas para refinar la estética.</p></div></div>
+    <div class="step"><div class="sn">3</div><div class="sb"><h4>Organización</h4><p>Organizar los hallazgos en una carpeta local (ej. <b>"WebDrink"</b>) para alimentar posteriormente a la IA.</p></div></div>
+  </div>
+
+  <div class="co e"><span class="ct">✅ EJEMPLO · ANALOGÍA DE COMPRENSIÓN</span><p>Piense en este proceso como en la arquitectura: un arquitecto no inventa el concepto de "luz natural", sino que observa cómo otros edificios capturan la luz para aplicar esa lógica a su propia obra original.</p></div>
+
+  <div class="card">
+    <h3>🔑 Resumen del Capítulo: 3 Claves del Éxito</h3>
+    <div class="g3">
+      <div class="card kcard" style="--kc:#00d4ff;margin:0"><b>Composición</b><p>Determinar dónde vive el producto y el sujeto.</p></div>
+      <div class="card kcard" style="--kc:#f59e0b;margin:0"><b>Iluminación</b><p>Definir si el tono es dramático, vibrante o suave.</p></div>
+      <div class="card kcard" style="--kc:#a855f7;margin:0"><b>Sensación</b><p>Establecer si el objetivo es frescura, lujo o energía.</p></div>
+    </div>
+  </div>
+
+  <div class="co i"><span class="ct">ℹ️ TRANSICIÓN ESTRATÉGICA</span><p>Una vez que tenemos la brújula visual, el siguiente paso es usar la IA para transformar esa inspiración en activos de marca únicos y coherentes.</p></div>
+</section>
+
+<!-- ================= 03 FASE 2 ================= -->
+<section id="v-f2" class="view">
+  <div class="sh"><span class="shi">🤖</span><div><span class="sk">Capítulo 3 · Fase 2</span><h2>Generación de Activos con IA (ChatGPT y DALL-E)</h2></div></div>
+
+  <div class="card">
+    <p>La ingeniería de prompts en un nivel senior no busca el "clic de la suerte". Es un <b style="color:#7dd3fc">proceso iterativo</b> que refina una idea genérica hasta convertirla en un activo de marca profesional.</p>
+  </div>
+
+  <div class="card">
+    <h3>🛠️ Proceso de Ingeniería de Prompts (Paso a Paso)</h3>
+
+    <div class="step"><div class="sn">1</div><div class="sb">
+      <h4>Definición de la Escena</h4>
+      <p>Subimos las referencias a ChatGPT y ejecutamos el primer comando:</p>
+      <div class="pr">quiero que me des una sección basada en la primera imagen pero quiero que la bebida sea en un frasco transparente de vidrio similar a la tercera imagen adjunta la segunda imagen es para que simplemente sepas que después te voy a pedir un prompt que convierta la primera imagen en la segunda la idea es crear una web conceptual para una marca de jugo</div>
+    </div></div>
+
+    <div class="step"><div class="sn">2</div><div class="sb">
+      <h4>Ajuste de Detalles y Estilo</h4>
+      <p>Pulimos la imagen para elevar el atractivo visual:</p>
+      <div class="pr">okay ahora que ya entiendes la composición que quiero haz que la bebida se vea más atractiva ponle una etiqueta profesional que se vea un poco más líquida quiero que la chica tenga puesta una camiseta rosa que no esté con lentes que sea de cabello trigueño y que la composición tenga buen contraste</div>
+    </div></div>
+
+    <div class="step"><div class="sn">3</div><div class="sb">
+      <h4>Solución de Errores</h4>
+      <p>Corregimos anomalías técnicas de la IA (como botellas duplicadas):</p>
+      <div class="pr">quitar botella dentro de botella por más restos de fruta y jugo dentro de la botella</div>
+    </div></div>
+  </div>
+
+  <div class="card">
+    <h3>⚖️ Tabla de Ejecución: Correcto vs. Incorrecto</h3>
+    <div class="twrap">
+      <table>
+        <thead><tr><th>Descripción Vaga (Evitar)</th><th>Prompt Detallado (Basado en Fuente)</th></tr></thead>
+        <tbody>
+          <tr><td class="b">"Una mujer bebiendo jugo".</td><td class="g">"Mujer de cabello trigueño, camiseta rosa, sosteniendo botella de vidrio con etiqueta Blendy, alto contraste".</td></tr>
+          <tr><td class="b">"Hazlo más profesional".</td><td class="g">"Haz la bebida más líquida y atractiva, asegura que la modelo esté separada del fondo con paleta magenta".</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="co e"><span class="ct">✅ EJEMPLO · CONSEJO DE EXPERTO</span><p>La consistencia es marca. En el caso de <b>"Blendy"</b>, el uso del magenta no es accidental; es el hilo conductor que une el activo generado con la identidad corporativa.</p></div>
+</section>
+
+<!-- ================= 04 FASE 3 ================= -->
+<section id="v-f3" class="view">
+  <div class="sh"><span class="shi">🏗️</span><div><span class="sk">Capítulo 4 · Fase 3</span><h2>Arquitectura y Maquetación Web (Antigravity y Dynamo Sites)</h2></div></div>
+
+  <div class="card">
+    <p>Antes de añadir movimiento, debemos validar que el diseño estático sea impecable. <b style="color:#fca5a5">Una web que no comunica valor en una imagen fija, fracasará al ser animada.</b></p>
+  </div>
+
+  <div class="card">
+    <h3>🧩 Configuración de la Sección Hero</h3>
+    <p>Utilizamos <b style="color:#7dd3fc">Dynamo Sites</b> para establecer la jerarquía editorial y <b style="color:#7dd3fc">Antigravity</b> para la implementación técnica.</p>
+    <p style="margin-top:8px"><b>Instrucción de Maquetación para Antigravity:</b></p>
+    <div class="pr">crea una sección hero en base a estos lineamientos usa el asset que te dejé en la carpeta del proyecto como fondo no uses el fondo original de la plantilla solo usa el contenido la interfaz y los textos mantén las fuentes y los lineamientos de diseño y adapta todo el copy para un jugo como el de la imagen</div>
+  </div>
+
+  <div class="card">
+    <h3>✅ Lista de Comprobación (Checklist) Crítica</h3>
+    <p style="font-size:.88rem;color:var(--dim)">Marca cada punto para validar tu maqueta estática:</p>
+    <label class="ck"><input type="checkbox"><span class="cb">✓</span><span class="cx"><b>Contraste de Textos:</b> ¿Se lee el copy claramente sobre el fondo generado?</span></label>
+    <label class="ck"><input type="checkbox"><span class="cb">✓</span><span class="cx"><b>Alineación Editorial:</b> ¿El bloque de texto equilibra la posición de la modelo?</span></label>
+    <label class="ck"><input type="checkbox"><span class="cb">✓</span><span class="cx"><b>Rutas de Archivos:</b> ¿El asset está correctamente vinculado en la carpeta del proyecto?</span></label>
+  </div>
+
+  <blockquote class="quote">"Una maqueta estática es un monumento; una secuencia animada es un viaje. Ahora, vamos a guionizar ese viaje."</blockquote>
+</section>
+
+<!-- ================= 05 FASE 4 ================= -->
+<section id="v-f4" class="view">
+  <div class="sh"><span class="shi">🎥</span><div><span class="sk">Capítulo 5 · Fase 4</span><h2>Creación de la Narrativa Cinematográfica (Google Flow y Veo 3.1)</h2></div></div>
+
+  <div class="card">
+    <p>La animación en una web premium debe contar una <b style="color:#7dd3fc">historia controlada</b>. No buscamos movimiento por movimiento, sino una transición lógica entre el inicio y un desenlace impactante.</p>
+  </div>
+
+  <div class="card">
+    <h3>🎯 Generación del Fotograma Final</h3>
+    <p>Definimos el destino antes que el camino:</p>
+    <div class="pr">okay ahora crea la misma mujer pero con la toma de la referencia 3 que te di centrada al medio de la toma la toma tiene que ser desde abajo desde el interior de la botella</div>
+  </div>
+
+  <div class="card">
+    <h3>🧠 El Insight "Meta": La IA escribiendo para la IA</h3>
+    <p>Un paso clave es pedirle a ChatGPT que redacte el prompt técnico para el modelo de video, asegurando que la descripción sea óptima:</p>
+    <div class="pr">bien ahora necesito que me des un prompt que vaya desde el frame inicial que pase por varias etapas contando una historia y llegue finalmente a la que acabamos de crear con ella bebiendo el jugo y tiene que ser un promp rápido porque no tiene muchos segundos la generación así que evita palabras como slow y transition</div>
+  </div>
+
+  <div class="co a"><span class="ct">⚠️ ADVERTENCIA · NOTA ESTRATÉGICA CRÍTICA</span><p>Se deben evitar palabras como <b>"slow"</b> o <b>"transition"</b>. Queremos una acción continua, no un efecto de software.</p></div>
+
+  <div class="co i"><span class="ct">ℹ️ ELECCIÓN DE HERRAMIENTA · POR QUÉ GOOGLE FLOW</span><p>En nuestras pruebas, <b>Gemini.com no respetó los fotogramas clave</b>, desviándose de la imagen inicial. <b>Google Flow (Veo 3.1 Fast)</b> es la opción superior porque garantiza la coherencia entre el punto A y el punto B.</p></div>
+</section>
+
+<!-- ================= 06 FASE 5 ================= -->
+<section id="v-f5" class="view">
+  <div class="sh"><span class="shi">🖱️</span><div><span class="sk">Capítulo 6 · Fase 5</span><h2>Implementación del Control de Scroll Premium</h2></div></div>
+
+  <div class="card">
+    <p>Aquí reside la <b style="color:#7dd3fc">magia técnica</b>. No vamos a reproducir un archivo MP4, ya que estos sufren de <b style="color:#fca5a5">latencia</b> y <b style="color:#fca5a5">falta de precisión</b> al intentar sincronizarlos con el scroll.</p>
+  </div>
+
+  <div class="card">
+    <h3>🧮 La Lógica del Canvas</h3>
+    <p>Utilizamos una secuencia de imágenes en un <b>Canvas</b>. Al extraer aproximadamente <b style="color:#f59e0b">80 fotogramas optimizados</b> del video, permitimos que el navegador decida exactamente qué cuadro mostrar según la posición del scroll.</p>
+    <div class="g3" style="margin-top:14px">
+      <div class="card kcard" style="--kc:#22c55e;margin:0"><b>Respuesta Instantánea</b><p>Sin "buffering" ni saltos.</p></div>
+      <div class="card kcard" style="--kc:#00d4ff;margin:0"><b>Precisión Quirúrgica</b><p>La animación se detiene exactamente donde el usuario deja de mover el ratón.</p></div>
+      <div class="card kcard" style="--kc:#a855f7;margin:0"><b>Fluidez Total</b><p>Permite avanzar y retroceder en la narrativa de forma orgánica.</p></div>
+    </div>
+  </div>
+
+  <div class="card demo">
+    <h3>🎛️ Laboratorio Interactivo: Simulador de Scrub</h3>
+    <p style="font-size:.9rem;color:var(--mut)">Arrastra el control y observa cómo cada posición del scroll selecciona un fotograma exacto, igual que el Canvas real:</p>
+    <div class="drow"><span class="f">FRAME Nº <span id="fNum">00</span> / 79</span><span class="p" id="fPct">0%</span></div>
+    <div class="dbar"><div id="fBar"></div></div>
+    <input type="range" id="scrub" min="0" max="79" value="0" aria-label="Simulador de fotogramas por scroll">
+    <div class="pv"><div class="mb" id="mB"></div></div>
+    <p class="dnote">A mayor desplazamiento, mayor zoom de cámara: el navegador renderiza el fotograma correspondiente sin reproducir ningún video.</p>
+  </div>
+</section>
+
+<!-- ================= 07 FASE 6 ================= -->
+<section id="v-f6" class="view">
+  <div class="sh"><span class="shi">🚀</span><div><span class="sk">Capítulo 7 · Fase 6</span><h2>Publicación y Despliegue (Hostinger)</h2></div></div>
+
+  <div class="card">
+    <p>Este es el paso final de lo que llamamos <b style="color:#7dd3fc">"Despliegue No-Code de un resultado Pro-Code"</b>. Publicar en un entorno profesional valida nuestro trabajo frente al cliente.</p>
+  </div>
+
+  <div class="card">
+    <h3>📤 Guía de Publicación Profesional</h3>
+    <div class="step"><div class="sn">1</div><div class="sb"><h4>Creación</h4><p>En Hostinger, selecciona crear un sitio de tipo <b>HTML</b>.</p></div></div>
+    <div class="step"><div class="sn">2</div><div class="sb"><h4>Entorno</h4><p>Usa un <b>dominio temporal</b> para validar la experiencia antes del lanzamiento final.</p></div></div>
+    <div class="step"><div class="sn">3</div><div class="sb"><h4>Carga</h4><p>Sube el archivo <b>index.html</b>, la carpeta de los <b>80 fotogramas</b> y los activos.</p></div></div>
+    <div class="step"><div class="sn">4</div><div class="sb"><h4>Verificación</h4><p>Comprueba la fluidez del scroll en diferentes dispositivos.</p></div></div>
+  </div>
+
+  <div class="card">
+    <h3>❓ Preguntas Frecuentes (FAQ)</h3>
+    <div class="acc">
+      <button class="acch">¿Es pesado cargar 80 imágenes? <span class="arw">▼</span></button>
+      <div class="accb"><div>Al estar optimizadas, el navegador las gestiona eficientemente mediante el Canvas, ofreciendo una experiencia más ligera que un video de alta resolución.</div></div>
+    </div>
+    <div class="acc">
+      <button class="acch">¿Puedo usar mi dominio? <span class="arw">▼</span></button>
+      <div class="accb"><div>Totalmente. Hostinger permite la transición de dominio temporal a profesional en un clic.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= 08 CONCLUSIÓN ================= -->
+<section id="v-fin" class="view">
+  <div class="sh"><span class="shi">🏁</span><div><span class="sk">Capítulo 8</span><h2>Conclusión y Recursos de Aprendizaje</h2></div></div>
+
+  <div class="card">
+    <h3>🚫 Errores Críticos a Evitar</h3>
+    <div class="err"><span class="en">1</span><div><b>Falta de Iteración</b><p>Quedarse con la primera imagen de la IA sin pulir detalles.</p></div></div>
+    <div class="err"><span class="en">2</span><div><b>Contaminación de Prompts</b><p>Usar términos como "transition" que confunden al modelo de video.</p></div></div>
+    <div class="err"><span class="en">3</span><div><b>Ignorar lo Estático</b><p>Intentar arreglar un mal diseño con animaciones.</p></div></div>
+    <div class="err"><span class="en">4</span><div><b>No Optimizar</b><p>Subir imágenes pesadas que arruinen la experiencia móvil.</p></div></div>
+  </div>
+
+  <div class="co e"><span class="ct">✅ EJEMPLO · EJERCICIO PRÁCTICO: RETO DE MARCA DE PERFUMES</span>
+    <p><b>Reto:</b> Crear una landing para un perfume de lujo.</p>
+    <p style="margin-top:8px"><b>Solución (Cambio de Prompts):</b></p>
+    <p style="margin-top:6px">• <b>Frame Inicial:</b> "Frasco de perfume minimalista sobre mármol negro, iluminación lateral dramática".</p>
+    <p>• <b>Frame Final (Cierre):</b> "Primer plano del difusor del perfume lanzando una estela de fragancia capturada en alta velocidad".</p>
+  </div>
+
+  <div class="card">
+    <h3>📚 Glosario Técnico</h3>
+    <div class="g3">
+      <div class="card gl" style="margin:0"><b>Asset</b><span>Recurso digital de valor (imagen, video, tipografía).</span></div>
+      <div class="card gl" style="margin:0"><b>Canvas</b><span>Elemento de HTML5 usado para renderizar gráficos dinámicos y secuencias de imágenes.</span></div>
+      <div class="card gl" style="margin:0"><b>Frame Interpolation</b><span>Capacidad de la IA para crear cuadros intermedios entre dos imágenes.</span></div>
+      <div class="card gl" style="margin:0"><b>Hero Section</b><span>La primera sección que ve el usuario, responsable del 80% del impacto.</span></div>
+      <div class="card gl" style="margin:0"><b>Prompt Engineering</b><span>El arte de estructurar instrucciones para obtener resultados precisos de una IA.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CRÉDITOS ================= -->
+<section id="v-cred" class="view">
+  <div class="cthero">
+    <span class="badge" style="border-color:rgba(168,85,247,.5);color:#d8b4fe;background:rgba(168,85,247,.08)">★ Créditos</span>
+    <h2>Tutorial Maestro: Creación de Webs Premium Animadas con IA y Control de Scroll</h2>
+    <p class="sub2">El mismo SVG animado de la portada, en movimiento continuo.</p>
+  </div>
+
+  <div class="cover"><div id="coverCredits"></div></div>
+
+  <div class="card auth" style="margin-top:22px">
+    <div class="av">RS</div>
+    <div>
+      <div class="an">Rubén Sbarsky</div>
+      <div class="ar">Autor del Tutorial · Creación de Webs Premium Animadas con IA</div>
+    </div>
+  </div>
+
+  <div class="chips" style="justify-content:center;margin-top:18px">
+    <span class="chip">📅 Fecha: 29/08/2026</span>
+    <span class="chip">⏰ Hora: 07:57:21</span>
+    <span class="chip a">📚 Material con fines educativos y de divulgación</span>
+  </div>
+
+  <p class="fiat">Fiat iustitia, ruat caelum.</p>
+</section>
+
+</main>
+
+<footer>
+  <div>📚 Tutorial solo con fines Educativos y Divulgación</div>
+  <div>👨‍💻 Créditos: Rubén Sbarsky</div>
+  <div>📅 FECHA: 29/08/2026</div>
+  <div>Hora: 07:57:21</div>
+  <div class="ff">Fiat iustitia, ruat caelum.</div>
+</footer>
+
+<button id="toTop" aria-label="Volver arriba">↑</button>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ===== clonar el MISMO SVG a CRÉDITOS ===== */
+  var srcSvg = document.getElementById('coverSvg');
+  var holder = document.getElementById('coverCredits');
+  if(srcSvg && holder && holder.childElementCount === 0){
+    var clon = srcSvg.cloneNode(true);
+    clon.removeAttribute('id');
+    clon.setAttribute('aria-hidden','true');
+    holder.appendChild(clon);
+  }
+
+  /* ===== prefers-reduced-motion: pausar SMIL ===== */
+  var rm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(rm){
+    document.querySelectorAll('svg').forEach(function(s){
+      if(s.pauseAnimations){ try{ s.pauseAnimations(); }catch(e){} }
+    });
+  }
+
+  /* ===== SPA ===== */
+  var views = Array.prototype.slice.call(document.querySelectorAll('.view'));
+  var tabs  = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+
+  function go(id){
+    views.forEach(function(v){ v.classList.toggle('on', v.id === id); });
+    tabs.forEach(function(t){
+      var on = t.getAttribute('data-go') === id;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-current', on ? 'true' : 'false');
+      if(on){ try{ t.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'}); }catch(e){} }
+    });
+    window.scrollTo(0,0);
+    upd();
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){ go(t.getAttribute('data-go')); });
+  });
+
+  /* ===== barra de progreso + botón subir ===== */
+  var bar = document.getElementById('pbar');
+  var toTop = document.getElementById('toTop');
+  function upd(){
+    var h = document.documentElement;
+    var max = h.scrollHeight - window.innerHeight;
+    bar.style.width = (max > 0 ? (h.scrollTop / max) * 100 : 0) + '%';
+    toTop.classList.toggle('show', h.scrollTop > 500);
+  }
+  window.addEventListener('scroll', upd, {passive:true});
+  window.addEventListener('resize', upd);
+  toTop.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+  upd();
+
+  /* ===== acordeones FAQ ===== */
+  Array.prototype.forEach.call(document.querySelectorAll('.acch'), function(h){
+    h.addEventListener('click', function(){
+      var it = h.parentElement;
+      var b  = it.querySelector('.accb');
+      var open = it.classList.toggle('open');
+      b.style.maxHeight = open ? (b.scrollHeight + 'px') : '0px';
+      h.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+  });
+
+  /* ===== simulador de scrub ===== */
+  var s = document.getElementById('scrub'),
+      fn = document.getElementById('fNum'),
+      fp = document.getElementById('fPct'),
+      fb = document.getElementById('fBar'),
+      mb = document.getElementById('mB');
+  if(s){
+    var updScr = function(){
+      var v = +s.value, pct = Math.round(v / 79 * 100);
+      fn.textContent = (v < 10 ? '0' : '') + v;
+      fp.textContent = pct + '%';
+      fb.style.width = pct + '%';
+      mb.style.transform = 'scale(' + (1 + (v / 79) * 1.6) + ')';
+    };
+    s.addEventListener('input', updScr);
+    updScr();
+  }
+})();
+</script>
+</body>
+</html>
